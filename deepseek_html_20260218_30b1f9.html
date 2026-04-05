@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>普兰主页 · 下滑查看文档</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+    // 原有雪花效果 (保持不变)
+    window.onload = function() {
+        var minSize = 5;
+        var maxSize = 32;
+        var newOne = 180;
+        var flakColor = "#d4f1ff";
+        var flak = $("<div></div>").css({ position: "absolute", top: "0px" }).html("❄️");
+        var dhight = $(window).height() + 100;
+        var dw = $(window).width();
+
+        setInterval(function() {
+            var sizeflak = minSize + Math.random() * maxSize;
+            var startLeft = Math.random() * dw;
+            var startOpacity = 0.8 + Math.random() * 0.2;
+            var endTop = dhight - 100;
+            var endLeft = Math.random() * dw;
+            var durationfull = 5000 + Math.random() * 6000;
+
+            flak.clone().appendTo($("body")).css({
+                "left": startLeft,
+                "opacity": startOpacity,
+                "font-size": sizeflak,
+                "color": flakColor,
+                "z-index": 100,
+                "pointer-events": "none",
+                "text-shadow": "0 0 8px rgba(180, 230, 255, 0.9)",
+                "filter": "blur(0.3px)",
+                "transform": "rotate(" + Math.random() * 360 + "deg)"
+            }).animate({
+                "top": endTop,
+                "left": endLeft,
+                "opacity": 0.1
+            }, durationfull, function() {
+                $(this).remove();
+            });
+        }, newOne);
+    };
+    </script>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #c3d8ffe1;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;      /* 改为纵向排列，方便下滑 */
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            color: #1e293b;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 卡片滑动容器 (完全保留原有样式) */
+        .cards-wrapper {
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            border-radius: 2.5rem;
+            position: relative;
+            z-index: 3;
+            margin: 5vh auto 0 auto;      /* 增加顶部间距，底部留给白色区域 */
+            box-shadow: 0 25px 40px -10px rgba(0,0,0,0.15);
+            background: transparent;
+        }
+
+        .cards-slider {
+            display: flex;
+            width: 200%;
+            transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+            transform: translateX(0);
+            will-change: transform;
+        }
+
+        .cards-slider.show-second {
+            transform: translateX(-50%);
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem 2.8rem;
+            border-radius: 2.5rem;
+            box-sizing: border-box;
+            width: 50%;
+            border: 1px solid #e9eef2;
+            color: #1e293b;
+            opacity: 0;
+            transform: perspective(500px) rotateX(-15deg) scale(0.75) translateY(70px);
+            animation: cardFloatUp 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+            transform-origin: center center;
+            will-change: transform, opacity;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.05s;
+        }
+
+        @keyframes cardFloatUp {
+            0% {
+                opacity: 0;
+                transform: perspective(500px) rotateX(-18deg) scale(0.7) translateY(80px);
+            }
+            60% {
+                transform: perspective(500px) rotateX(-3deg) scale(0.96) translateY(10px);
+                opacity: 0.9;
+            }
+            100% {
+                opacity: 1;
+                transform: perspective(500px) rotateX(0deg) scale(1) translateY(0);
+            }
+        }
+
+        h1 {
+            font-weight: 500;
+            font-size: 2rem;
+            letter-spacing: -0.01em;
+            margin-top: 0.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .status {
+            background: #f1f4f9;
+            padding: 0.8rem 1.2rem;
+            border-radius: 60px;
+            font-size: 1rem;
+            color: #2c3e50;
+            border: 1px solid #dde3ea;
+            display: inline-block;
+            margin: 1.2rem 0 1.5rem 0;
+        }
+
+        .manual-link {
+            display: inline-block;
+            background: #1e293b;
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            border: none;
+            transition: background 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+
+        .manual-link:hover {
+            background: #0f172a;
+        }
+
+        .manual-link:active {
+            transform: scale(0.97);
+        }
+
+        .card p {
+            font-size: 1.05rem;
+            margin: 0.5rem 0 1.8rem 0;
+            color: #3b4b62;
+        }
+
+        /* ---------- 翻面箭头 (完全保留原有fixed定位) ---------- */
+        .flip-arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(0, 20, 40, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 400;
+            color: #1e3a5f;
+            cursor: pointer;
+            z-index: 200;
+            transition: left 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            border: 1px solid rgba(255,255,255,0.5);
+            line-height: 1;
+        }
+
+        .flip-arrow.arrow--right {
+            left: calc(50% + 336px);
+        }
+
+        .flip-arrow.arrow--left {
+            left: calc(50% - 384px);
+        }
+
+        .flip-arrow.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @keyframes bounceArrow {
+            0% { transform: translateY(-50%) translateX(0); }
+            20% { transform: translateY(-50%) translateX(-12px); }
+            40% { transform: translateY(-50%) translateX(12px); }
+            60% { transform: translateY(-50%) translateX(-8px); }
+            80% { transform: translateY(-50%) translateX(8px); }
+            100% { transform: translateY(-50%) translateX(0); }
+        }
+        .flip-arrow.bounce {
+            animation: bounceArrow 0.6s ease-in-out;
+        }
+
+        /* 水波涟漪层 (保持不变) */
+        .ripple {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            z-index: 1;
+            animation: rippleEffect ease-out forwards;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.726);
+            will-change: transform, opacity;
+        }
+        .ripple-1 {
+            width: 80px; height: 80px;
+            background: rgba(170, 210, 255, 0.55);
+            animation-delay: 0.12s;
+            animation-duration: 2.0s;
+            box-shadow: 0 0 45px rgba(255, 255, 255, 0.8);
+        }
+        .ripple-2 {
+            width: 150px; height: 150px;
+            background: rgba(190, 225, 255, 0.5);
+            animation-delay: 0.20s;
+            animation-duration: 2.3s;
+            box-shadow: 0 0 55px rgba(249, 252, 255, 0.75);
+        }
+        .ripple-3 {
+            width: 220px; height: 220px;
+            background: rgba(210, 235, 255, 0.45);
+            animation-delay: 0.34s;
+            animation-duration: 2.6s;
+            box-shadow: 0 0 65px rgba(234, 246, 255, 0.7);
+        }
+        .ripple-4 {
+            width: 300px; height: 300px;
+            background: rgba(230, 245, 255, 0.4);
+            animation-delay: 0.42s;
+            animation-duration: 3.0s;
+            box-shadow: 0 0 80px rgba(226, 243, 255, 0.7);
+        }
+        .ripple-5 {
+            width: 380px; height: 380px;
+            background: rgba(200, 220, 250, 0.3);
+            animation-delay: 0.5s;
+            animation-duration: 3.5s;
+            box-shadow: 0 0 100px rgb(255, 255, 255);
+        }
+        @keyframes rippleEffect {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0.95;
+            }
+            40% { opacity: 0.7; }
+            100% {
+                transform: translate(-50%, -50%) scale(10);
+                opacity: 0;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .card { animation: none; opacity: 1; transform: none; }
+            .ripple { display: none; }
+        }
+
+        /* ---------- 新增白色 README 区域样式 ---------- */
+        .readme-section {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            margin: 3rem auto 4rem auto;
+            padding: 2.8rem 3rem;
+            border-radius: 2.5rem;
+            box-sizing: border-box;
+            text-align: left;
+            color: #1e293b;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 25px 35px -12px rgba(0,20,40,0.15);
+            position: relative;
+            z-index: 10;           /* 高于雪花但低于箭头(200) 不影响箭头点击 */
+        }
+
+        .readme-section h1,
+        .readme-section h2,
+        .readme-section h3 {
+            font-weight: 500;
+            margin-top: 2em;
+            margin-bottom: 0.8em;
+            letter-spacing: -0.01em;
+        }
+        .readme-section h1 { font-size: 2.2rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.4rem; }
+        .readme-section h2 { font-size: 1.8rem; border-bottom: 1px solid #e9eef2; padding-bottom: 0.3rem; }
+        .readme-section p { line-height: 1.7; color: #2d3c53; margin: 1.2rem 0; }
+        .readme-section pre {
+            background: #f6f8fa;
+            padding: 1.2rem 1.8rem;
+            border-radius: 24px;
+            overflow-x: auto;
+            border: 1px solid #dee7ef;
+            font-size: 0.95rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        .readme-section code {
+            background: #f0f3f7;
+            padding: 0.2rem 0.6rem;
+            border-radius: 14px;
+            font-size: 0.9em;
+            color: #1e3a5f;
+        }
+        .readme-section pre code { background: none; padding: 0; }
+        .readme-section ul, .readme-section ol { padding-left: 2.2rem; margin: 1.2rem 0; }
+        .readme-section li { margin: 0.4rem 0; }
+        .readme-section a { color: #1e5f8e; text-decoration: none; border-bottom: 1px dotted #9bb8da; }
+        .readme-section img { max-width: 100%; border-radius: 18px; border: 1px solid #e2e9f2; }
+        .readme-section blockquote {
+            border-left: 5px solid #b3d1f0;
+            background: #f8fcff;
+            padding: 0.8rem 2rem;
+            margin: 1.8rem 0;
+            border-radius: 24px;
+            color: #2b4b6f;
+        }
+        .readme-section hr { border: none; border-top: 2px dashed #d0dfed; margin: 2.5rem 0; }
+
+        /* 并排按钮容器 (卡片内原有样式) */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <!-- 水波层 (保持不变) -->
+    <div class="ripple ripple-1"></div>
+    <div class="ripple ripple-2"></div>
+    <div class="ripple ripple-3"></div>
+    <div class="ripple ripple-4"></div>
+    <div class="ripple ripple-5"></div>
+
+    <!-- 卡片滑动容器 (完全保留原结构) -->
+    <div class="cards-wrapper">
+        <div class="cards-slider" id="cardsSlider">
+            <div class="card">
+                <h1>欢迎使用普兰主页！👏</h1>
+                <div class="status">📄本地部署：主文件 Custom.xaml</div>
+                <p>请点击下方按钮以下载 Custom.xaml 文件，<br>下载后请将其放置在指定位置以供使用。</p>
+                <a href="Custom.xaml" download="Custom.xaml" class="manual-link">⬇️ 点击下载Custom.xaml</a>
+            </div>
+            <!-- 第二个卡片：两个并排复制按钮 -->
+            <div class="card">
+                <h1>使用联网的普兰主页！🔗</h1>
+                <div class="status">🛜联网主页：复制主页链接</div>
+                <p>请点击下方按钮以复制主页链接。<br>将链接键入PCL里以部署普兰主页。</p>
+                <div class="btn-group">
+                    <a href="javascript:void(0)" class="manual-link" id="copyJsdelivr" style="background: #4a5c72;">📦 jsDelivr CDN</a>
+                    <a href="javascript:void(0)" class="manual-link" id="copyGithub" style="background: #4a5c72;">🌐 GitHub Pages</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 翻页箭头 (fixed, 与原位置一致) -->
+    <div class="flip-arrow arrow--right" id="flipArrow">→</div>
+
+    <!-- ========= 新增纯白 README 区域 ========= -->
+    <div class="readme-section">
+        <h1>The Plain Page（普兰主页）</h1>
+        <p align="center">
+            <img src="https://img.shields.io/badge/版本-v0.0.2(测试版)-blue" alt="版本">
+            <img src="https://img.shields.io/badge/PCLⅡ-主页项目-brightgreen" alt="PCLⅡ">
+            <img src="https://img.shields.io/badge/作者-Xwdjjy-ff69b4" alt="作者">
+        </p>
+        <p align="center">
+            <b>一个简洁、实用、美观的 PCLⅡ 启动器主页</b><br>
+            适用于 Plain Craft Launcher 2 的自定义主页，让你的启动器更具个性与功能。
+        </p>
+        <hr>
+
+        <h2>✨ 特性</h2>
+        <ul>
+            <li><strong>卡片式布局</strong> – 清晰的功能分区，包含欢迎卡片、快捷链接、工具箱、下载器、关于页面等。</li>
+            <li><strong>每日一图</strong> – 自动获取 Bing 每日壁纸，每次打开都有新鲜感。</li>
+            <li><strong>回声洞</strong> – 随机展示趣味文本，增加小惊喜。</li>
+            <li><strong>实用工具</strong> – 一键清理垃圾、内存优化、打开日志、定位启动脚本等。</li>
+            <li><strong>下载器</strong> – 内置下载输入框，可直接下载文件。</li>
+            <li><strong>联网 / 本地双模式</strong> – 既可选择下载 <code>Custom.xaml</code> 本地部署，也可使用 CDN 链接实现联网更新。</li>
+        </ul>
+
+        <hr>
+
+        <h2>📸 预览</h2>
+        <blockquote>
+            <p>你可以直接看看下方截图，或者打开项目的 <a href="Xwdjjy.github.io/The-Plain-Page">Page</a> 查看效果预览</p>
+        </blockquote>
+        <p><img src="image1.png" alt="预览截图"><br>
+        <img src="image2.png" alt="预览截图"><br>
+        <em>（实际主页效果请参考部署后体验）</em></p>
+
+        <hr>
+
+        <h2>📦 部署与食用</h2>
+
+        <h3>方法一：本地部署（下载 Custom.xaml）</h3>
+        <ol>
+            <li>点击仓库中的 <a href="Custom.xaml"><code>Custom.xaml</code></a> 文件，然后点击“下载”按钮，或直接执行以下命令：
+                <pre><code>wget https://github.com/Xwdjjy/The-Plain-Page/raw/main/Custom.xaml</code></pre>
+            </li>
+            <li>将下载的 <code>Custom.xaml</code> 文件放入 PCLⅡ 同级目录下的 <code>\PCL</code> 文件夹内。</li>
+            <li>在 PCLⅡ 的“设置”→“个性化”→“主页”中选择“读取本地文件”即可生效。</li>
+        </ol>
+
+        <h3>方法二：联网部署（使用 CDN 链接）</h3>
+        <p>如果你希望每次打开主页都自动获取最新版本（无需手动更新），可以使用以下链接：</p>
+        <ul>
+            <li><strong>jsDelivr CDN（推荐）</strong><br>
+                <code>https://cdn.jsdelivr.net/gh/Xwdjjy/The-Plain-Page/Custom.xaml</code>
+            </li>
+            <li><strong>GitHub Pages（可能不稳定）</strong><br>
+                <code>https://xwdjjy.github.io/The-Plain-Page/Custom.xaml</code>
+            </li>
+        </ul>
+        <p>在 PCLⅡ 的“主页”设置中选择“联网更新”，粘贴上述链接即可。</p>
+        <blockquote>
+            <p>注意：第一次联网模式加载需要 PCLⅡ 保持网络连接。</p>
+        </blockquote>
+
+        <hr>
+
+        <h2>📁 文件结构</h2>
+        <pre><code>The-Plain-Page/
+├── README.md                 # 你现在看到的说明文档
+├── Custom.xaml               # 主页面文件（核心）
+├── Custom.xaml.ini           # 数据库版本信息（供PCL识别）
+├── Custom.json               # 主题与版本元数据
+├── index.html                # 项目展示页面（含下载引导）
+└── image.png                 # 版本说明图片</code></pre>
+
+        <hr>
+
+        <h2>📜 版本历史（还未完成）</h2>
+        <h3>v0.0.2（当前最新）</h3>
+        <ul>
+            <li>测试版本，完善了卡片布局与交互</li>
+            <li>增加了工具箱、下载器等实用模块</li>
+            <li>修复部分已知问题</li>
+        </ul>
+        <h3>v0.0.1</h3>
+        <ul>
+            <li>初始版本，基础结构搭建</li>
+        </ul>
+
+        <hr>
+
+        <h2>🤝 如何贡献</h2>
+        <p>欢迎任何形式的贡献！你可以：</p>
+        <ul>
+            <li>提交 <a href="https://github.com/Xwdjjy/The-Plain-Page/issues">Issue</a> 报告 Bug 或提出新功能建议</li>
+            <li>Fork 本仓库，修改后提交 Pull Request</li>
+            <li>点个 ⭐Star 支持作者！</li>
+        </ul>
+
+        <hr>
+
+        <h2>📄 许可证</h2>
+        <p>Copyright © 2026 Xwdjjy. All rights reserved.<br>
+        本项目仅供个人学习与使用，未经许可不得用于商业用途。</p>
+
+        <hr>
+
+        <h2>🙏 致谢</h2>
+        <ul>
+            <li>感谢 <a href="https://github.com/Meloong-Git/PCL">PCLⅡ</a> 提供的自定义主页支持</li>
+            <li>感谢 Bing 每日壁纸 API</li>
+            <li>以及所有使用和关注本项目的朋友！</li>
+        </ul>
+
+        <hr>
+
+        <p align="center">
+            <a href="https://github.com/Xwdjjy">作者 GitHub</a> ·
+            <a href="https://xwdjjy.github.io/src/projects/plain_page/redirect/">作者网站</a> ·
+            <a href="https://github.com/Xwdjjy/The-Plain-Page">项目仓库</a>
+        </p>
+    </div>
+
+    <script>
+        $(window).on('load', function() {
+            // ---------- 复制功能（两个新按钮）----------
+            function copyToClipboard(text, friendlyName) {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        alert('✅ 已复制 ' + friendlyName + ' 链接到剪贴板\n\n' + text);
+                    }).catch(function(err) {
+                        alert('❌ 复制失败，请手动复制链接:\n' + text);
+                    });
+                } else {
+                    alert('您的浏览器不支持一键复制，请手动复制链接:\n' + text);
+                }
+            }
+
+            $('#copyJsdelivr').on('click', function(e) {
+                e.preventDefault();
+                copyToClipboard('https://cdn.jsdelivr.net/gh/Xwdjjy/The-Plain-Page/Custom.xaml', 'jsDelivr CDN');
+            });
+
+            $('#copyGithub').on('click', function(e) {
+                e.preventDefault();
+                copyToClipboard('https://xwdjjy.github.io/The-Plain-Page/Custom.xaml', 'GitHub Pages');
+            });
+
+            // ---------- 原有箭头逻辑（保持不变）----------
+            setTimeout(function() {
+                var $arrow = $('#flipArrow');
+                $arrow.addClass('visible').removeClass('arrow--left').addClass('arrow--right').html('→');
+                $arrow.addClass('bounce');
+                setTimeout(function() {
+                    $arrow.removeClass('bounce');
+                }, 600);
+            }, 2000);
+
+            var $slider = $('#cardsSlider');
+            var $arrow = $('#flipArrow');
+            var animating = false;
+
+            $arrow.on('click', function(e) {
+                e.stopPropagation();
+                if (animating) return;
+                animating = true;
+
+                $arrow.removeClass('visible');
+
+                var isSecond = $slider.hasClass('show-second');
+
+                if (!isSecond) {
+                    $slider.addClass('show-second');
+                    $arrow.removeClass('arrow--right').addClass('arrow--left');
+                    $arrow.html('←');
+                } else {
+                    $slider.removeClass('show-second');
+                    $arrow.removeClass('arrow--left').addClass('arrow--right');
+                    $arrow.html('→');
+                }
+
+                setTimeout(function() {
+                    $arrow.addClass('visible');
+                }, 600);
+
+                setTimeout(function() {
+                    animating = false;
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
